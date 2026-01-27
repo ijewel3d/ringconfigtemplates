@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ring Configurator</title>
+    <style>
+      html,body{margin:0;padding:0;}
+      .container{display:flex;min-height:100vh;}
+      .viewer-section{flex:1;position:relative;}
+      .controls-section{width:280px;padding:1.5rem;background:#f5f5f5;border-left:1px solid #ddd;}
+      .color-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin:1rem 0 1.5rem;}
+      .color-button{width:100%;height:40px;border:0;border-radius:6px;cursor:pointer;transition:transform .18s,box-shadow .18s;}
+      .color-button:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.08);}
+      h2{color:#333;margin-bottom:.7rem;font-size:1.2rem;}
+      .white-gold{background:#c2c2c3;}
+      .yellow-gold{background:#e3bb5e;}
+      .rose-gold{background:#f2af83;}
+      .platinum{background:#b9bbbc;}
+      .diamond{background:#fff;border:1px solid #ddd;}
+      .ruby{background:#e0115f;}
+      .sapphire{background:#0f52ba;}
+      .emerald{background:#50c878;}
+      .amethyst{background:#9966cc;}
+      @media(max-width:768px){
+        .container{flex-direction:column;}
+        .viewer-section{height:60vh;}
+        .controls-section{width:100%;border-left:0;border-top:1px solid #ddd;padding:1rem;}
+        .color-buttons{grid-template-columns:repeat(4,1fr);gap:.4rem;}
+        .color-button{height:32px;}
+        h2{font-size:1rem;margin-bottom:.3rem;}
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0">
+    <div class="container">
+      <div class="viewer-section">
+        <product-model2 style="padding-top: min(calc(100vh - 12rem), 100%)">
+          <template>
+            <!-- Enter share url in src attribute of model-viewer element. -->
+            <model-viewer src="https://drive.ijewel3d.com/drive/files/QbtXpFBOT3mOQUY9_CXxcQ/view"></model-viewer>
+          </template>
+        </product-model2>
+      </div>
+
+      <div class="controls-section">
+        <div>
+          <h2>Material Colour</h2>
+          <div class="color-buttons">
+            <button class="color-button white-gold" title="White Gold"></button>
+            <button class="color-button yellow-gold" title="Yellow Gold"></button>
+            <button class="color-button rose-gold" title="Rose Gold"></button>
+            <button class="color-button platinum" title="Platinum"></button>
+          </div>
+        </div>
+
+        <div>
+          <h2>Gem Colour</h2>
+          <div class="color-buttons">
+            <button class="color-button diamond" title="Diamond"></button>
+            <button class="color-button ruby" title="Ruby"></button>
+            <button class="color-button sapphire" title="Sapphire"></button>
+            <button class="color-button emerald" title="Emerald"></button>
+            <button class="color-button amethyst" title="Amethyst"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+<script>
+      class DeferredMedia extends HTMLElement {
+        constructor() {super();this.loadContent=this.loadContent.bind(this);}
+        connectedCallback() {setTimeout(()=>this.loadContent(false),0);}
+        loadContent(focus=true){
+          window.pauseAllMedia?.();
+          if(!this.getAttribute("loaded")){
+            const t=this.querySelector("template");
+            if(!t)return;
+            const c=document.createElement("div"),f=t.content.firstElementChild;
+            if(!f)return;
+            c.appendChild(f.cloneNode(true));
+            this.setAttribute("loaded",true);
+            const d=c.querySelector("model-viewer");
+            if(!d)return;
+            this.appendChild(d);
+            if(focus)d.focus();
+          }
+        }
+        triggerLoad(){this.loadContent(true);}
+      }
+      customElements.define("deferred-media-2", DeferredMedia);
+</script>
+
+<script>
+  if (!document.getElementById("miniviewer-script")) {
+    const viewerScript = document.createElement("script");
+    viewerScript.setAttribute("id", "miniviewer-script");
+    viewerScript.setAttribute("src","https://releases.ijewel3d.com/libs/mini-viewer/0.5.5/bundle.iife.js");
+    document.head.appendChild(viewerScript);
+
+    const viewerOptions = {
+      showCard: false,
+      showSwitchNode: false,
+      splitMaterialTabs: true,
+      useIjewelLogo: false,
+      hideQuality: true,
+      logoScale: 1,
+      hideFullScreen: true,
+      hideResetView: true,
+      hideFitScene: true,
+      showLogo: false,
+      hideRotateCamera: true,
+      hideCameraViews: true,
+      hideGltfAnimations: true,
+      transparentBg: true,
+      runRotateCamera: false,
+      showConfigurator: false,
+      showShare: false,
+      brandingSettings: {
+        enable: false,
+        showLoadingScreenLogo: false,
+      },
+    };
+
+    viewerScript.onload = async () => {
+      if (!customElements.get("model-viewer")) {
+        customElements.define(
+          "model-viewer",
+          class ModelViewerWebGi extends HTMLElement {
+            constructor() {
+              super();
+              const container = document.createElement("div");
+              this.container = container;
+              this.container.style.width = "100%";
+              this.container.style.height = "100%";
+              this.container.setAttribute("id", "miniviewer-container");
+
+              this.appendChild(container);
+              this.initialize();
+            }
+
+            async initialize() {
+              let baseName = "drive";
+              let modelId = this.getAttribute("src").split("/")[5];
+              this.viewer2;
+
+              if (modelId) {
+                ijewelViewer.loadModelById(
+                  modelId,
+                  baseName ?? "drive",
+                  this.container,
+                  viewerOptions
+                );
+              }
+
+              window.addEventListener("ijewel-viewer-ready", async (ev) => {
+                this.viewer2 = ev.detail.viewer;
+                const mc=document.getElementById("miniviewer-container");
+                if(mc.firstElementChild)
+                  mc.firstElementChild.style.setProperty("display","block","important");
+
+                this.viewer2.renderer.displayCanvasScaling = Math.min(window.devicePixelRatio, 1.5);
+
+                const viewer = event.detail.viewer;
+                const materialButtons = document.querySelectorAll(
+                  ".controls-section div:first-child .color-buttons button"
+                );
+                const gemButtons = document.querySelectorAll(
+                  ".controls-section div:last-child .color-buttons button"
+                );
+
+                materialButtons.forEach((button) => {
+                  button.addEventListener("click", () => {
+                    const computedStyle = window.getComputedStyle(button);
+                    const backgroundColor = computedStyle.backgroundColor;
+
+                    if (backgroundColor && viewer) {
+                      viewer.scene.modelRoot?.modelObject.traverse((object) => {
+                        if (
+                          object.isMesh &&
+                          object.material &&
+                          object.material.name.startsWith("Metal")
+                        ) {
+                          object.material.color.set(backgroundColor);
+                        }
+                      });
+                      viewer.setDirty();
+                    }
+                  });
+                });
+                gemButtons.forEach((button) => {
+                  button.addEventListener("click", () => {
+                    const computedStyle = window.getComputedStyle(button);
+                    const backgroundColor = computedStyle.backgroundColor;
+
+                    if (backgroundColor && viewer) {
+                      viewer.scene.modelRoot?.modelObject.traverse((object) => {
+                        if (
+                          object.isMesh &&
+                          object.material &&
+                          object.material.name.includes("Gem")
+                        ) {
+                          object.material.color.set(backgroundColor);
+                        }
+                      });
+                      viewer.setDirty();
+                    }
+                  });
+                });
+              });
+            }
+          }
+        );
+      }
+    };
+
+    if(!customElements.get("product-model")){
+      customElements.define("product-model2",class extends DeferredMedia{
+        constructor(){
+          super();
+        }
+        async loadContent(focus=true){super.loadContent(focus);}
+        setupModelViewerUI(errors){if(errors)return;}
+      });
+    }
+  }
+</script>

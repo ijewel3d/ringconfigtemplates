@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ring Configurator</title>
+    <style>
+      html,body{margin:0;padding:0;}
+      .container{display:flex;min-height:100vh;}
+      .viewer-section{flex:1;position:relative;}
+      .controls-section{width:280px;padding:1.5rem;background:#f5f5f5;border-left:1px solid #ddd;}
+      .color-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin:1rem 0 1.5rem;}
+      .color-button{width:100%;height:40px;border:0;border-radius:6px;cursor:pointer;transition:transform .18s,box-shadow .18s;}
+      .color-button:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.08);}
+      h2{color:#333;margin-bottom:.7rem;font-size:1.2rem;}
+      .white-gold{background:#c2c2c3;}
+      .yellow-gold{background:#e3bb5e;}
+      .rose-gold{background:#f2af83;}
+      .platinum{background:#b9bbbc;}
+      .diamond{background:#fff;border:1px solid #ddd;}
+      .ruby{background:#e0115f;}
+      .sapphire{background:#0f52ba;}
+      .emerald{background:#50c878;}
+      .amethyst{background:#9966cc;}
+      @media(max-width:768px){
+        .container{flex-direction:column;}
+        .viewer-section{height:60vh;}
+        .controls-section{width:100%;border-left:0;border-top:1px solid #ddd;padding:1rem;}
+        .color-buttons{grid-template-columns:repeat(4,1fr);gap:.4rem;}
+        .color-button{height:32px;}
+        h2{font-size:1rem;margin-bottom:.3rem;}
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0">
+    <div class="container">
+      <div class="viewer-section">
+        <product-model2 style="padding-top: min(calc(100vh - 12rem), 100%)">
+          <template>
+            <!-- Enter share url in src attribute of model-viewer element. -->
+            <model-viewer src="https://www.customdesignsilove.com/?id=cmTCUqE2Qd6DkQWe_-EJ0A"></model-viewer>
+          </template>
+        </product-model2>
+      </div>
+
+      <div class="controls-section">
+        <div>
+          <h2>3d</h2>
+          <button title="Start AR" id="arviewButton" style="top: 60px; display: block; border: none;" class="view-button">
+          <svg width="26" height="26" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.2586 21.6149C14.1262 21.7005 13.9711 21.7443 13.8136 21.7406C13.656 21.7368 13.5031 21.6857 13.375 21.5939L9.0891 18.397C8.75914 18.1636 8.36466 18.0388 7.9605 18.04C7.65471 18.0396 7.35305 18.1104 7.07939 18.2469C6.80573 18.3833 6.5676 18.5816 6.38385 18.826C6.1189 19.188 5.98415 19.629 6.00149 20.0773C6.01883 20.5256 6.18723 20.9549 6.47936 21.2954L12.6464 28.1049C12.9949 29.4623 13.6459 30.7232 14.5509 31.7933C15.4558 32.8634 16.5912 33.7148 17.8719 34.2839C18.929 34.7616 20.0767 35.0058 21.2367 34.9999C23.0693 35.0067 24.852 34.4033 26.3035 33.2848C27.7551 32.1664 28.793 30.5965 29.2535 28.8229C29.4461 28.0345 29.5925 27.2354 29.692 26.4299L33.8839 15.07C34.0547 14.6027 34.0365 14.0872 33.8332 13.6331C33.6299 13.1789 33.2576 12.822 32.7953 12.638C32.5678 12.5453 32.3243 12.4984 32.0787 12.5C31.6995 12.4964 31.3281 12.607 31.0125 12.8174C30.697 13.0277 30.4521 13.3281 30.3096 13.6795L27.3008 19.8149L27.7303 17.0585C27.8937 16.9113 28.0018 16.7126 28.0364 16.4955L28.2629 15.05C28.2968 14.8322 28.2552 14.6093 28.1449 14.4185L28.9979 8.93149C29.0707 8.45926 28.9583 7.97716 28.6841 7.58586C28.4099 7.19455 27.9951 6.92429 27.5263 6.83149C27.0439 6.74558 26.547 6.85164 26.1417 7.12704C25.7364 7.40244 25.4548 7.82536 25.3571 8.30549L24.3285 13.75C24.1667 13.8905 24.0565 14.0811 24.0155 14.2915L23.7435 15.7305C23.7038 15.9433 23.7371 16.1633 23.838 16.355L23.2879 19.2825C23.2776 19.3432 23.2448 19.3978 23.1961 19.4356C23.1473 19.4733 23.0862 19.4914 23.0248 19.4862C22.9634 19.4811 22.9062 19.4531 22.8644 19.4077C22.8227 19.3624 22.7995 19.3031 22.7994 19.2414L22.4823 6.77449C22.4694 6.30097 22.2727 5.85105 21.934 5.51989C21.5952 5.18873 21.1409 5.00229 20.6672 5C20.1865 5.0008 19.7257 5.19243 19.3863 5.53278C19.0469 5.87313 18.8565 6.33433 18.857 6.81499V19.3749C18.8592 19.3959 18.8569 19.4171 18.8504 19.4371C18.8438 19.4571 18.8331 19.4756 18.8189 19.4912C18.8048 19.5068 18.7875 19.5193 18.7682 19.5277C18.7489 19.5362 18.7281 19.5406 18.707 19.5404C18.6863 19.5453 18.6649 19.5456 18.6441 19.5412C18.6234 19.5368 18.6038 19.5279 18.5869 19.5151C18.57 19.5023 18.5561 19.4859 18.5463 19.4672C18.5365 19.4484 18.5309 19.4276 18.53 19.4064L16.4468 7.79299C16.3671 7.34252 16.1215 6.93824 15.7585 6.65982C15.3954 6.3814 14.9413 6.24904 14.4855 6.28882C14.0297 6.3286 13.6053 6.53763 13.296 6.87472C12.9867 7.21181 12.8149 7.65252 12.8144 8.10999C12.8169 8.20944 12.827 8.30855 12.8444 8.40649L14.6396 20.8014C14.6657 20.9597 14.6432 21.122 14.5752 21.2673C14.5072 21.4125 14.3968 21.5337 14.2586 21.6149ZM24.726 15.915L24.9656 14.5L27.2713 14.92L27.0813 16.32L24.726 15.915ZM26.3387 8.49499C26.3764 8.29987 26.4806 8.12389 26.6337 7.99712C26.7867 7.87036 26.979 7.80068 27.1778 7.79999C27.2314 7.80062 27.2849 7.80564 27.3378 7.81499C27.5521 7.85845 27.7414 7.98283 27.8664 8.16227C27.9914 8.34171 28.0424 8.56241 28.0089 8.77849L27.2138 13.8925L25.3821 13.5595L26.3387 8.49499ZM15.6312 20.6579L13.836 8.26549L13.8285 8.21549C13.8216 8.18087 13.8175 8.14576 13.816 8.11049C13.8167 7.91812 13.8839 7.73191 14.0064 7.58351C14.1288 7.43511 14.2988 7.33369 14.4876 7.29649C14.5954 7.27428 14.7066 7.27412 14.8144 7.29604C14.9223 7.31795 15.0246 7.36147 15.1152 7.42399C15.2071 7.48671 15.2854 7.56729 15.3456 7.66092C15.4057 7.75455 15.4464 7.85932 15.4652 7.96899L17.5469 19.5819C17.5986 19.8685 17.7556 20.1253 17.9871 20.3018C18.2187 20.4784 18.5079 20.5619 18.7979 20.536C19.0879 20.51 19.3577 20.3765 19.5542 20.1616C19.7507 19.9467 19.8596 19.6661 19.8596 19.3749V6.81499C19.8583 6.70734 19.8787 6.60053 19.9195 6.5009C19.9603 6.40127 20.0207 6.31085 20.0971 6.235C20.1715 6.15955 20.2603 6.09985 20.3582 6.05948C20.4562 6.0191 20.5612 5.99887 20.6672 6C20.8805 6.00098 21.0849 6.08512 21.2372 6.23451C21.3894 6.38391 21.4773 6.58678 21.4822 6.79999L21.7973 19.2679C21.8044 19.5761 21.9254 19.8707 22.137 20.0948C22.3486 20.319 22.6358 20.4568 22.943 20.4816C23.2503 20.5065 23.5558 20.4167 23.8007 20.2294C24.0456 20.0422 24.2124 19.7709 24.269 19.4679L24.751 16.9105L26.6862 17.2635L26.2937 19.7819C26.2546 20.0182 26.3033 20.2605 26.4306 20.4633C26.5578 20.6661 26.7549 20.8153 26.9845 20.883C27.2142 20.9506 27.4607 20.9319 27.6776 20.8304C27.8944 20.7289 28.0667 20.5516 28.1619 20.3319L31.2236 14.085C31.2902 13.9124 31.4075 13.764 31.5602 13.6595C31.7129 13.5551 31.8937 13.4994 32.0787 13.5C32.1949 13.4985 32.3101 13.5202 32.4178 13.564C32.6396 13.6511 32.8187 13.8213 32.9171 14.0383C33.0155 14.2554 33.0255 14.5022 32.9448 14.7265L28.7339 26.1369C28.721 26.1722 28.7119 26.2087 28.7069 26.2459C28.6125 27.0302 28.4712 27.8081 28.2839 28.5754C27.8784 30.1337 26.9657 31.5127 25.6897 32.4949C24.4137 33.4771 22.847 34.0066 21.2367 33.9999C20.2215 34.0058 19.217 33.793 18.2915 33.3759C17.1311 32.8681 16.1037 32.0991 15.2894 31.1291C14.475 30.1591 13.8957 29.0141 13.5965 27.7834C13.5803 27.6902 13.538 27.6035 13.4745 27.5334L7.22993 20.6349C7.08743 20.4672 7.00567 20.2564 6.99786 20.0364C6.99006 19.8165 7.05667 19.6003 7.18692 19.4229C7.34234 19.2333 7.56144 19.1067 7.80335 19.0668C8.04526 19.0269 8.29343 19.0763 8.50155 19.206L12.7874 22.4059C13.0777 22.6103 13.4214 22.7251 13.7762 22.7362C14.1309 22.7474 14.4812 22.6544 14.7837 22.4687C15.0862 22.2831 15.3276 22.0129 15.4783 21.6915C15.6289 21.3701 15.682 21.0117 15.6312 20.6604V20.6579Z" fill="#222222" stroke="#222222" stroke-width="0.5"></path>
+          </svg>
+        </button>
+        </div>
+        <!-- <div>
+          <h2>Material Colour</h2>
+          <div class="color-buttons">
+            <button class="color-button white-gold" title="White Gold"></button>
+            <button class="color-button yellow-gold" title="Yellow Gold"></button>
+            <button class="color-button rose-gold" title="Rose Gold"></button>
+            <button class="color-button platinum" title="Platinum"></button>
+          </div>
+        </div>
+
+        <div>
+          <h2>Gem Colour</h2>
+          <div class="color-buttons">
+            <button class="color-button diamond" title="Diamond"></button>
+            <button class="color-button ruby" title="Ruby"></button>
+            <button class="color-button sapphire" title="Sapphire"></button>
+            <button class="color-button emerald" title="Emerald"></button>
+            <button class="color-button amethyst" title="Amethyst"></button>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </body>
+</html>
+<script>
+      class DeferredMedia2 extends HTMLElement {
+        constructor() {super();this.loadContent=this.loadContent.bind(this);}
+        connectedCallback() {setTimeout(()=>this.loadContent(false),0);}
+        loadContent(focus=true){
+          window.pauseAllMedia?.();
+          if(!this.getAttribute("loaded")){
+            const t=this.querySelector("template");
+            if(!t)return;
+            const c=document.createElement("div"),f=t.content.firstElementChild;
+            if(!f)return;
+            c.appendChild(f.cloneNode(true));
+            this.setAttribute("loaded",true);
+            const d=c.querySelector("model-viewer");
+            if(!d)return;
+            this.appendChild(d);
+            if(focus)d.focus();
+          }
+        }
+        triggerLoad(){this.loadContent(true);}
+      }
+      customElements.define("deferred-media-2", DeferredMedia2);
+</script>
+
+<script>
+  /**
+ * This file is an alternative of `product-model.js` on Shopify.
+ * It overloads the default model-viewer with the `webgi-viewer` from the iJewel3D SDK(https://ijewel3d.com).
+ * This file must be included in the theme manually, and referenced in the pages where product-model.js was used.
+ * Check the docs for more information and updates. - https://developer.ijewel3d.com/integrations/shopify
+ *
+ * File version - 18-12-2025
+ * Modified to show poster image first, then load 3D model on button click
+ * Refactored to use loadScript function consistently
+ */
+
+(function() {
+  'use strict';
+
+  // Settings for the iJewel3D SDK
+  window.iJewelSDKSettings = {
+    miniviewer_version: "0.4.2",
+    scene_settings: "",
+    environment_map: "",
+    license_key: "",
+    loading: {
+      showFileNames: false,
+      backgroundOpacity: 0.5,
+      background: "#ffffff",
+      textColor: "#222222",
+      logoImage: "https://vlora-jewelry.myshopify.com/cdn/shop/files/vlora-logo.png",
+    },
+    autoplay: true,
+    ...(window.iJewelSDKSettings || {}),
+  };
+
+  if (!window.iJewelLoadScript) {
+    window.iJewelLoadScript = (src) => {
+      return new Promise((resolve, reject) => {
+        const existingScript = document.querySelector(`script[src="${src}"]`);
+        if (existingScript) {
+          resolve();
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        document.body.appendChild(script);
+      });
+    };
+  }
+
+  const loadScript = window.iJewelLoadScript;
+  if (window.iJewelInitialized) {
+    return;
+  }
+  
+  window.iJewelInitialized = true;
+
+  (async function initializeIJewel3D() {
+
+  try {
+    await loadScript("https://releases.ijewel3d.com/libs/webgi-v0/bundle-0.18.0.js");
+    
+    if (!document.getElementById("ijewel-webgi-global")) {
+      const inlineScript = document.createElement("script");
+      inlineScript.setAttribute("id", "ijewel-webgi-global");
+      inlineScript.textContent = "window.webgi = window;";
+      document.head.appendChild(inlineScript);
+    }
+    await loadScript("https://releases.ijewel3d.com/libs/mini-viewer/0.5.0/bundle.nowebgi.iife.js");
+    const viewerMarker = document.createElement("script");
+    viewerMarker.setAttribute("id", "miniviewer-script");
+    viewerMarker.setAttribute("data-loaded", "true");
+    document.head.appendChild(viewerMarker);
+    await loadScript("https://releases.ijewel3d.com/libs/web-vto/0.0.38/web-vto.js");
+
+    initializeCustomElements();
+
+  } catch (error) {
+    console.error("Failed to load iJewel3D scripts:", error);
+  }
+})();
+
+function initializeCustomElements() {
+  const project = {
+    modelUrl: "https://demo-assets.pixotronics.com/pixo/gltf/jewlr1.glb",
+    basePath: "drive",
+    icon360: "https://cdn.shopify.com/s/files/1/0896/7238/4805/files/icon-360.svg?v=1751042143",
+    sceneConfig: {},
+    materialConfig: {},
+    configuratorConfig: [],
+  };
+
+  const viewerOptions = {
+    showCard: false,
+    showSwitchNode: false,
+    splitMaterialTabs: true,
+    useIjewelLogo: false,
+    hideQuality: true,
+    logoScale: 1,
+    hideFullScreen: true,
+    hideResetView: true,
+    hideFitScene: true,
+    showLogo: false,
+    hideRotateCamera: true,
+    hideCameraViews: true,
+    hideGltfAnimations: true,
+    transparentBg: true,
+    runRotateCamera: true,
+    showConfigurator: false,
+    showShare: false,
+    brandingSettings: {
+      enable: false,
+      showLoadingScreenLogo: false,
+    },
+  };
+
+  if (!customElements.get("model-viewer")) {
+    customElements.define(
+      "model-viewer",
+      class ModelViewerWebGi extends HTMLElement {
+        onVariantChangeUnsubscriber = undefined;
+        materialVariations = undefined;
+        activeMetalColor = undefined;
+        
+        constructor() {
+          super();
+          const container = document.createElement('div');
+          this.container = container;
+          this.container.style.width = "100%";
+          this.container.style.height = "100%";
+          this.container.setAttribute('id', 'miniviewer-container');
+          
+          this.appendChild(container);
+          this.modelLoaded = false;
+          this.viewerInitialized = false;
+          this.fileConfig = null;
+          this.posterUrl = null;
+          
+          this.initialize();
+        }
+
+        doOnLoad(fn) {
+          if (this.modelLoaded) fn();
+          this.onLoad = fn;
+        }
+
+        async initialize() {
+          project.modelUrl = this.getAttribute("src");
+          let modelId;
+          let baseName = "vlorajewelry";
+          
+          if (project.modelUrl.includes("?id=")) {
+            modelId = new URL(project.modelUrl).searchParams.get("id");
+          } else if (project.modelUrl.includes(".ijewel3d.com/drive/files/")) {
+            modelId = project.modelUrl.split("/")[5];
+          }
+
+          if (!modelId) {
+            this.viewer = new ijewelViewer.Viewer(this.container, project, viewerOptions);
+          } else {
+            this.viewer = await ijewelViewer.loadModelById(
+              modelId,
+              baseName ?? "drive",
+              this.container,
+              viewerOptions
+            );
+          }
+          
+          window.addEventListener("ijewel-viewer-ready", async (ev) => {
+            this.viewer2 = this.viewer.viewerApp ?? ev.detail.viewer;
+
+            this.viewer2.renderer.displayCanvasScaling = Math.min(window.devicePixelRatio, 1.5);
+            this.modelLoaded = true;
+            this.viewer2.scene.activeCamera.addEventListener('update', (ev) => {
+              if (window.innerWidth < window.innerHeight) {
+                (this.viewer2.scene.activeCamera.getControls()).minDistance = 16;
+                (this.viewer2.scene.activeCamera.getControls()).maxDistance = 9;
+              } else {
+                (this.viewer2.scene.activeCamera.getControls()).maxDistance = 14;
+                (this.viewer2.scene.activeCamera.getControls()).minDistance = 7;
+              }
+            });
+            
+            if (this.onLoad) {
+              this.onLoad();
+            }
+          });
+
+          window.addEventListener("ijewel-file-data", async (ev) => {
+            console.log(ev)
+            try {
+              if (!ev.detail?.iJewelFileData) return;
+              
+              const fileConfig = JSON.parse(ev.detail.iJewelFileData.config);
+              if (!fileConfig?.tryonConfig?.enabled) return;
+
+              const arButton = document.getElementById("arviewButton");
+              if (!arButton) return;
+              console.log(arButton)
+
+              arButton.style.display = "block";
+              
+              arButton.addEventListener("click", async () => {
+                try {
+                  const webgiElement = document.getElementById("miniviewer-container");
+                  if (!webgiElement) {
+                    console.error("Viewer container not found");
+                    return;
+                  }
+
+                  if (!this.viewer2) {
+                    console.error("Viewer instance not available");
+                    return;
+                  }
+
+                  
+
+                  const enterARFullscreenSafely = async () => {
+                    if (!navigator.mediaDevices?.getUserMedia) {
+                      console.warn("Camera API not supported");
+                      return false;
+                    }
+
+                    try {
+                      if (navigator.permissions?.query) {
+                        const status = await navigator.permissions.query({ name: "camera" });
+                        if (status.state === "denied") {
+                          console.warn("Camera permission denied");
+                          return false;
+                        }
+                      }
+
+                      const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "environment" }
+                      });
+                      
+                      stream.getTracks().forEach(track => track.stop());
+                      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                      const targetElement = isMobile ? window.ijewel3DContainer : webgiElement;
+                      
+                      return true;
+                    } catch (err) {
+                      console.warn("Camera access failed:", err);
+                      return false;
+                    }
+                  };
+
+                  const cameraGranted = await enterARFullscreenSafely();
+                  if (!cameraGranted) return;
+
+                  if (!window.ij_vto) {
+                    console.error("WebVTO is not loaded");
+                    return;
+                  }
+
+                  const arPlugin = await this.viewer2.addPlugin(window.ij_vto.RingTryonPlugin);
+                  
+                  if (fileConfig.tryonConfig) {
+                    fileConfig.tryonConfig.type = "RingTryonPlugin";
+                    arPlugin.fromJSON(fileConfig.tryonConfig);
+                  }
+
+                  await arPlugin.start();
+
+                  // const fullScreenPlugin = this.viewer2.getPluginByType("FullScreenPlugin");
+                  // if (!fullScreenPlugin) {
+                  //   console.error("FullScreen plugin not available");
+                  //   return;
+                  // }
+                  // fullScreenPlugin.toggle(webgiElement);
+                  //debugger; 
+                  console.log(this.viewer2.scene.activeCamera);
+
+                  const existingCloseBtn = document.getElementById("ar-close-btn");
+                  if (existingCloseBtn) {
+                    existingCloseBtn.remove();
+                  }
+
+                  const closeBtn = document.createElement("button");
+                  closeBtn.id = "ar-close-btn";
+                  closeBtn.innerHTML = "✕";
+                  closeBtn.title = "Close AR";
+
+                  Object.assign(closeBtn.style, {
+                    position: "absolute",
+                    top: "16px",
+                    right: "16px",
+                    zIndex: "9999",
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    border: "none",
+                    background: "rgba(0,0,0,0.7)",
+                    color: "#fff",
+                    fontSize: "22px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  });
+
+                  const handleFullscreenChange = async () => {
+                    if (!document.fullscreenElement) {
+                      const btn = document.getElementById("ar-close-btn");
+                      if (btn) btn.remove();
+                      try {
+                        await arPlugin.stop();
+                      } catch (e) {
+                        console.warn("AR stop on fullscreen exit failed:", e);
+                      }
+                      
+                      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+                    }
+                  };
+
+                  document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+                  closeBtn.addEventListener("click", async () => {
+                    try {
+                      await arPlugin.stop();
+                    } catch (e) {
+                      console.warn("AR stop failed:", e);
+                    }
+
+                    if (fullScreenPlugin.enabled) {
+                      fullScreenPlugin.exit();
+                    }
+
+                    closeBtn.remove();
+                    document.removeEventListener("fullscreenchange", handleFullscreenChange);
+                  });
+
+                  webgiElement.appendChild(closeBtn);
+
+                } catch (error) {
+                  console.error("AR initialization failed:", error);
+                }
+              }, { once: false });
+
+            } catch (error) {
+              console.error("Failed to process ijewel-file-data:", error);
+            }
+          });
+        }
+      }
+    );
+  }
+
+  if (!customElements.get("product-model")) {
+    customElements.define(
+      "product-model2",
+      class ProductModel extends DeferredMedia2 {
+        constructor() {
+          super();
+
+          const template = this.querySelector("template");
+          if (template) {
+            const viewer = template.content.querySelector("model-viewer");
+            if (viewer) {
+              delete viewer.dataset.shopifyFeature;
+            } else {
+              console.warn("No model-viewer found in template");
+            }
+          } else {
+            console.warn("No template found in product-model2");
+          }
+        }
+
+        async loadContent(focus = true) {
+          super.loadContent(focus);
+          const modelViewer = this.querySelector("model-viewer");
+          if (modelViewer) {
+            console.log("Model viewer loaded in ProductModel2");
+          }
+        }
+        
+        setupModelViewerUI(errors) {
+          if (errors) {
+            console.error("Errors setting up model viewer UI:", errors);
+            return;
+          }
+        }
+      }
+    );
+  }
+}
+
+})(); // End of IIFE
+</script>

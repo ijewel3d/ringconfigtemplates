@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Este Lalonde Ring - Ring Builder V2</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <script src="/assets/bundle.iife.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="brand-logo">
+            <img src="/assets/brand.png" alt="">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="grid-layout">
+            <div class="viewer-section">
+                <div id="viewer-container"></div>
+            </div>
+            <div class="sidebar">
+                <div class="product-info red-hat-display">
+                    <h1 class="product-title">Este Lalonde Ring</h1>
+                    <p class="product-code">ESL-ALE2243-0000</p>
+                    <p class="product-price">$ 2,800</p>
+                </div>
+                <div id="ring-components-container">
+                    <div class="loading-message">Loading ring components...</div>
+                </div>
+                <div id="material-configurators-container">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    const Head = {
+        "HD-HH-RB-05": "/assets/heads/Baze Set.png",
+        "HD-HH-OV-10": "/assets/heads/Double Halo.png",
+        "HD-H-RB-05": "/assets/heads/Four Prong.png",
+        "HD-H-OV-10": "/assets/heads/Pave Halo.png",
+        "SH7-PL": "/assets/heads/Six Prong.png"
+    }
+
+    const Shank = {
+        "SH5-PL": "/assets/shanks/Baguette.png",
+        "SH4-PV": "/assets/shanks/Fishtail.png",
+        "SH1-PL": "/assets/shanks/Pave.png",
+        "SH8-PL": "/assets/shanks/Solitaire.png"
+    }
+
+    const Metal = {
+        "Gold": "/assets/metals/Gold.png",
+        "RoseGold": "/assets/metals/RoseGold.png",
+        "WhiteGold": "/assets/metals/WhiteGold.png",
+    }
+    const driveBasename = 'dev-2'; // for enterprise clients contact us to get your basename, otherwise keep it unchanged
+    const modelFileId = 'cgLkQMb-S86Q8Ws-huB6_w'; // Replace with the actual Model ID
+    const containerElement = document.getElementById('viewer-container');
+    let ringBuilderPlugin = null;
+    function setOptionLoading(optionElement, isLoading) {
+        const swatch = optionElement.querySelector('.option-swatch, .material-option-swatch');
+        if (swatch) {
+            if (isLoading) {
+                swatch.classList.add('loading');
+            } else {
+                swatch.classList.remove('loading');
+            }
+        }
+    }
+    function renderRingComponents(components, plugin) {
+        const container = document.getElementById('ring-components-container');
+        container.innerHTML = ''; // Clear loading message
+
+        components.forEach((component, componentIndex) => {
+            if (component.visible) {
+                const section = createComponentSection(component, componentIndex, plugin);
+                container.appendChild(section);
+            }
+        });
+    }
+    function createComponentSection(component, componentIndex, plugin) {
+        const section = document.createElement('div');
+        section.className = 'component-section';
+        section.id = `component-section-${componentIndex}`;
+
+        // Section header
+        const header = document.createElement('h2');
+        header.className = 'section-header';
+        header.textContent = component.name;
+        section.appendChild(header);
+
+        // Variations label
+        const label = document.createElement('label');
+        label.className = 'section-label';
+        const selectedVariation = component.variations[component.selectedIndex];
+        label.textContent = component.name + ": " + (selectedVariation ? (selectedVariation.title || selectedVariation.name).replace('.glb', '') : `Style`);
+        section.appendChild(label);
+
+        // Variations grid
+        const grid = document.createElement('div');
+        grid.className = 'variations-grid';
+        grid.id = `component-${componentIndex}-variations`;
+
+        component.variations.forEach((variation, variationIndex) => {
+            const optionItem = createVariationOption(
+                variation,
+                component,
+                componentIndex,
+                variationIndex,
+                component.selectedIndex === variationIndex
+            );
+            grid.appendChild(optionItem);
+        });
+
+        section.appendChild(grid);
+        return section;
+    }
+    function createVariationOption(variation, component, componentIndex, variationIndex, isSelected) {
+        const optionItem = document.createElement('div');
+        optionItem.className = 'option-item';
+        if(isSelected) optionItem.classList.add("selected")
+        optionItem.dataset.componentIndex = componentIndex;
+        optionItem.dataset.variationIndex = variationIndex;
+        const swatch = document.createElement('div');
+        swatch.className = 'option-swatch';
+        if (variation.icon) {
+            function getIcon(){
+                if(component.name === "Head") return Head[variation.name.replace(".glb","")]
+                if(component.name === "Shank") return Shank[variation.name.replace(".glb","")]
+            }
+            const img = document.createElement('img');
+            img.src = getIcon() ?? variation.icon;
+            img.alt = variation.title || variation.name;
+            img.onerror = function () {
+                this.style.display = 'none';
+            };
+            swatch.appendChild(img);
+        }
+
+        optionItem.appendChild(swatch);
+        const label = document.createElement('span');
+        label.className = `option-label`;
+        label.textContent = variation.title
+            ? variation.title.replace('.glb', '')
+            : variation.name.replace('.glb', '');
+        optionItem.appendChild(label);
+        optionItem.addEventListener('click', async () => {
+            setOptionLoading(optionItem, true);
+            try {
+                await applyVariation(component, variation, componentIndex, variationIndex);
+            } finally {
+                setOptionLoading(optionItem, false);
+            }
+        });
+
+        return optionItem;
+    }
+    async function applyVariation(component, variation, componentIndex, variationIndex) {
+        if (component && component.applyVariation) {
+            await component.applyVariation(variation);
+        }
+        updateSelectionUI(componentIndex, variationIndex);
+    }
+    function updateSelectionUI(componentIndex, variationIndex) {
+        const grid = document.getElementById(`component-${componentIndex}-variations`);
+        if (!grid) return;
+
+        const options = grid.querySelectorAll('.option-item');
+        options.forEach((option, index) => {
+            const label = option.querySelector('.option-label');
+            if (index === variationIndex) option.classList.add("selected")
+            else option.classList.remove("selected")
+        });
+    }
+
+    let materialConfiguratorPlugin = null;
+    let currentViewer = null;
+    function materialExists(viewer, variation) {
+        if (!viewer) return false;
+        let found = false;
+        viewer.scene.traverse((object) => {
+            if (object.isMesh) {
+                const n = object.material?.name;
+                try {
+                    const re = new RegExp(variation.uuid);
+                    if (n && re.test(n)) {
+                        found = true;
+                    }
+                } catch {
+                    if (n === variation.uuid) {
+                        found = true;
+                    }
+                }
+            }
+        });
+        return found;
+    }
+    function renderMaterialConfigurators(plugin, viewer) {
+        const container = document.getElementById('material-configurators-container');
+        container.innerHTML = '';
+
+        if (!plugin || !plugin.variations) {
+            return;
+        }
+
+        plugin.variations.forEach((variation, variationIndex) => {
+            if (!materialExists(viewer, variation)) return;
+
+            const name = variation.uuid || variation.title;
+            const title = variation.title || variation.uuid;
+            const options = plugin.options[variationIndex] || [];
+
+            if (options.length === 0) return;
+
+            const section = createMaterialSection(variation, variationIndex, title, options, plugin, ["head", "shank"].some(term => variation.title.toLowerCase().includes(term)));
+            const materialSections = document.getElementsByClassName("material-section");
+            if(!Array.from(materialSections).find((msec) => msec.id === section.id)){
+                if(variation.title.includes("Shank")){
+                    const componentTitles = document.getElementsByClassName("section-header")
+                    const shankHeader = Array.from(componentTitles).find(header => 
+                        header.textContent.includes("Shank") || header.textContent.includes("shank")
+                    );
+                    if(shankHeader){
+                        shankHeader.parentElement.appendChild(section)
+                    }
+                }
+                else if(variation.title.includes("Head")){
+                    const componentTitles = document.getElementsByClassName("section-header")
+                    const headHeader = Array.from(componentTitles).find(header => 
+                        header.textContent.includes("Head") || header.textContent.includes("head")
+                    );
+                    if(headHeader){
+                        headHeader.parentElement.appendChild(section)
+                    }
+                }
+                else container.appendChild(section);
+            }
+        });
+    }
+    function createMaterialSection(variation, variationIndex, title, options, plugin, customSection) {
+        const section = document.createElement('div');
+        section.className = 'material-section';
+        section.id = `material-section-${variationIndex}`;
+        if(!customSection) {
+            const header = document.createElement('h2');
+            header.className = 'section-header';
+            header.textContent = title;
+            section.appendChild(header);
+        }else{
+            const label = document.createElement('label');
+            label.className = 'section-label';
+            label.style.marginTop = "1.8rem"
+            label.textContent = title;
+            section.appendChild(label);
+        }
+        const grid = document.createElement('div');
+        grid.className = 'options-grid';
+        grid.id = `material-${variationIndex}-options`;
+
+        options.forEach((option, optionIndex) => {
+            const isSelected = variation.selectedIndex === optionIndex;
+            const optionItem = createMaterialOption(
+                option,
+                variation,
+                variationIndex,
+                optionIndex,
+                isSelected,
+                plugin
+            );
+            grid.appendChild(optionItem);
+        });
+
+        section.appendChild(grid);
+        return section;
+    }
+    function createMaterialOption(option, variation, variationIndex, optionIndex, isSelected, plugin) {
+        const optionItem = document.createElement('div');
+        optionItem.className = 'material-option-item';
+        optionItem.dataset.variationIndex = variationIndex;
+        optionItem.dataset.optionIndex = optionIndex;
+        const swatch = document.createElement('div');
+        const customClass = getSwatchClass(option, variation);
+        let className = `material-option-swatch ${customClass}`;
+        swatch.className = className;
+        if (option.icon) {
+            function getIcon(){
+                if(component.name === "Head") return Head[variation.name.replace(".glb","")]
+                if(component.name === "Shank") return Shank[variation.name.replace(".glb","")]
+            }
+            swatch.style.overflow = 'hidden';
+            const img = document.createElement('img');
+            img.src = option.icon;
+            img.alt = option.title || option.name || option.uuid;
+            img.onerror = function () {
+                this.style.display = 'none';
+            };
+            swatch.appendChild(img);
+        } else if (option.color && !customClass) {
+            swatch.style.backgroundColor = option.color;
+        }
+        if(isSelected) optionItem.classList.add("selected")
+        optionItem.appendChild(swatch);
+        const label = document.createElement('span');
+        label.className = `material-option-label`;
+        label.textContent = option.title || (variation.title + '-' + (optionIndex + 1));
+        optionItem.appendChild(label);
+        optionItem.addEventListener('click', async () => {
+            setOptionLoading(optionItem, true);
+            try {
+                await applyMaterialOption(variation, option, variationIndex, optionIndex, plugin);
+            } finally {
+                setOptionLoading(optionItem, false);
+            }
+        });
+
+        return optionItem;
+    }
+    function getSwatchClass(option, variation) {
+        const name = (option.title || option.name || option.uuid || '').toLowerCase();
+        const variationName = (variation.title || variation.uuid || '').toLowerCase();
+        if (name.includes('white') && (name.includes('gold') || variationName.includes('metal'))) {
+            return 'material-swatch-white-gold';
+        }
+        if (name.includes('rose') && (name.includes('gold') || variationName.includes('metal'))) {
+            return 'material-swatch-rose-gold';
+        }
+        if ((name.includes('gold') || name.includes('yellow')) && variationName.includes('metal')) {
+            return 'material-swatch-gold';
+        }
+
+        // Gem swatches
+        if (name.includes('diamond')) {
+            return 'gem-swatch-diamond';
+        }
+        if (name.includes('sapphire')) {
+            return 'gem-swatch-sapphire';
+        }
+        if (name.includes('ruby')) {
+            return 'gem-swatch-ruby';
+        }
+        if (name.includes('emerald')) {
+            return 'gem-swatch-emerald';
+        }
+
+        return '';
+    }
+    async function applyMaterialOption(variation, option, variationIndex, optionIndex, plugin) {
+        if (plugin && plugin.applyVariation) {
+            await plugin.applyVariation(variation, option.uuid);
+            updateMaterialSelectionUI(variationIndex, optionIndex);
+        }
+    }
+    function updateMaterialSelectionUI(variationIndex, optionIndex) {
+        const grid = document.getElementById(`material-${variationIndex}-options`);
+        if (!grid) return;
+
+        const options = grid.querySelectorAll('.material-option-item');
+        options.forEach((option, index) => {
+            const label = option.querySelector('.material-option-label');
+            if (index === optionIndex) option.classList.add("selected")
+            else option.classList.remove("selected")
+        });
+    }
+    function initMaterialConfigurator(viewer) {
+        currentViewer = viewer;
+        const plugin = viewer.getPluginByType("MaterialConfiguratorPlugin");
+
+        if (!plugin) {
+            console.log('MaterialConfiguratorPlugin not found');
+            return;
+        }
+
+        materialConfiguratorPlugin = plugin;
+        renderMaterialConfigurators(plugin, viewer);
+        plugin.addEventListener("deserialize", () => {
+            renderMaterialConfigurators(plugin, viewer);
+        });
+
+        plugin.addEventListener("refreshUi", () => {
+            renderMaterialConfigurators(plugin, viewer);
+        });
+        viewer.scene.addEventListener("addSceneObject", () => {
+            renderMaterialConfigurators(plugin, viewer);
+        });
+    }
+
+    ijewelViewer.loadModelById(
+        modelFileId,
+        driveBasename,
+        containerElement,
+        {
+            showCard: false,
+            showSwitchNode: false,
+            splitMaterialTabs: true,
+            useIjewelLogo: false,
+            hideQuality: true,
+            logoScale: 1,
+            hideFullScreen: true,
+            hideResetView: true,
+            hideFitScene: true,
+            showLogo: false,
+            hideRotateCamera: true,
+            hideCameraViews: true,
+            hideGltfAnimations: true,
+            transparentBg: true,
+            runRotateCamera: false,
+            showConfigurator: false,
+            showShare: false,
+            brandingSettings: {
+                enable: false,
+                showLoadingScreenLogo: false,
+            },
+        }
+    );
+    window.addEventListener("ijewel-viewer-ready", (event) => {
+        const viewer = event.detail.viewer;
+        initMaterialConfigurator(viewer);
+        const RingBuilderPlugin = viewer.getPluginByType("RingBuilder");
+
+        if (RingBuilderPlugin) {
+            RingBuilderPlugin.addEventListener("componentProcessed", (ev) => {
+                RingBuilderPlugin.setRootScale(0.1)
+
+                ringBuilderPlugin = RingBuilderPlugin;
+                const ringComponents = RingBuilderPlugin.components;
+
+                if (ringComponents && ringComponents.length > 0) {
+                    renderRingComponents(ringComponents, RingBuilderPlugin);
+                    if (materialConfiguratorPlugin && currentViewer) {
+                        renderMaterialConfigurators(materialConfiguratorPlugin, currentViewer);
+                    }
+                } else {
+                    document.getElementById('ring-components-container').innerHTML =
+                        '<div class="empty-message">No ring components available.</div>';
+                }
+            });
+        } else {
+            document.getElementById('ring-components-container').innerHTML =
+                '<div class="empty-message">Ring Builder plugin not found.</div>';
+        }
+    });
+</script>

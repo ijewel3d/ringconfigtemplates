@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Deletor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 100%;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .authenticated-section {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .authenticated-section.show {
+            display: block;
+        }
+        .list-container {
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        .list-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .selection-info {
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .selection-info.show {
+            display: block;
+        }
+        .selection-info.warning {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .bulk-actions {
+            display: none;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        .bulk-actions.show {
+            display: flex;
+        }
+        .bulk-actions button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .delete-btn {
+            background-color: #ffc107 !important;
+            color: #333 !important;
+        }
+        .delete-btn:hover {
+            background-color: #e0a800 !important;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        .login-section {
+            display: block;
+        }
+        .login-section.hidden {
+            display: none;
+        }
+        .header-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #dc3545 !important;
+        }
+        .logout-btn:hover {
+            background-color: #c82333 !important;
+        }
+        .info-box {
+            padding: 10px;
+            background-color: #e3f2fd;
+            margin-bottom: 10px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-buttons">
+            <h1 id="headerTitle">Authenticated API Client</h1>
+            <button id="logoutBtn" onclick="logout()" class="logout-btn" style="display: none;">Logout</button>
+        </div>
+        
+        <div id="loginSection" class="login-section">
+            <div class="form-group">
+                <label for="instanceName">Instance Name:</label>
+                <input type="text" id="instanceName" placeholder="e.g., vlorajewelry" value="dev-2">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="Enter your email" value="user@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter your password" value="password123">
+            </div>
+            
+            <button onclick="login()">Login</button>
+        </div>
+        
+        <div class="authenticated-section" id="authenticatedSection">
+            <div class="form-group">
+                <label for="cutoffDate">Show files created before:</label>
+                <input type="date" id="cutoffDate" style="width: auto; display: inline-block; margin-right: 10px;">
+                <button onclick="setDefaultDate()" style="padding: 5px 10px; font-size: 12px;">Set 2 Months Ago</button>
+            </div>
+            <button onclick="fetchList()">Get List</button>
+            <div id="selectionInfo" class="selection-info">
+                <strong>Selected: <span id="selectedCount">0</span> files (Max: 100)</strong>
+            </div>
+            <div id="bulkActions" class="bulk-actions">
+                <button onclick="deleteSelected()" class="delete-btn">Move to Trash</button>
+                <button onclick="clearSelection()">Clear Selection</button>
+            </div>
+            <div class="list-container" id="listContainer"></div>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Fetch Client with Authentication
+        class AuthenticatedFetchClient {
+            constructor(baseURL = '', instanceName) {
+                this.instanceName = instanceName;
+                this.baseURL = baseURL;
+                this.token = localStorage.getItem('authToken') || null;
+                this.user = JSON.parse(localStorage.getItem('userData') || 'null');
+                this.updateStatus();
+            }
+
+            // Login method - sends email and password, receives token
+            async login(email, password) {
+                const { data, error } = await this.fetch({
+                    url: `${this.baseURL}users/auth/login-password`,
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                    authenticated: false,
+                    useBaseApi: false
+                });
+
+                if (error) {
+                    console.error('Login error:', error);
+                    return { data: null, error };
+                }
+
+                if (data && data.token) {
+                    this.token = data.token;
+                    localStorage.setItem('authToken', this.token);
+                    
+                    // Store user data
+                    if (data.user) {
+                        this.user = data.user;
+                        localStorage.setItem('userData', JSON.stringify(data.user));
+                    }
+                    
+                    this.updateStatus();
+                }
+
+                return { data, error };
+            }
+
+            // HTTP fetch method that returns { data, error } tuple
+            async fetch({ url, method = 'GET', headers = {}, body, authenticated = true, useBaseApi = true }) {
+                try {
+                    const fetchOptions = {
+                        method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...headers
+                        }
+                    };
+
+                    // Add bearer token if authenticated request
+                    if (authenticated && this.token) {
+                        fetchOptions.headers['Authorization'] = `Bearer ${this.token}`;
+                    }
+
+                    if (body) {
+                        // Handle FormData specially - don't stringify it
+                        if (body instanceof FormData) {
+                            // Remove Content-Type header to let browser set it
+                            delete fetchOptions.headers['Content-Type'];
+                            fetchOptions.body = body;
+                        } else {
+                            fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+                        }
+                    }
+
+                    const response = await fetch(url, fetchOptions);
+
+                    if (response.status === 401) {
+                        this.logout();
+                        return { data: null, error: 'Token expired or invalid. Please login again.' };
+                    }
+
+                    if (!response.ok) {
+                        return { data: null, error: `Request failed: ${response.statusText}` };
+                    }
+
+                    const data = await response.json();
+                    return { data, error: null };
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    return { data: null, error: error.message };
+                }
+            }
+
+            // Logout method - clears token
+            logout() {
+                this.token = null;
+                this.user = null;
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                this.updateStatus();
+            }
+
+            // Decode JWT token to extract user data
+            decodeToken(token) {
+                try {
+                    if (!token) return null;
+                    
+                    const parts = token.split('.');
+                    if (parts.length !== 3) return null;
+                    
+                    // Decode the payload (second part)
+                    const payload = parts[1];
+                    const decoded = JSON.parse(atob(payload));
+                    
+                    return decoded;
+                } catch (error) {
+                    console.error('Failed to decode token:', error);
+                    return null;
+                }
+            }
+
+            // Get user info from token
+            getUserFromToken() {
+                if (!this.token) return null;
+                
+                const decoded = this.decodeToken(this.token);
+                if (!decoded) return null;
+                
+                // Extract user info from token payload
+                return {
+                    id: decoded.id || '',
+                    email: decoded.sub || '',
+                    name: decoded.user || 'Unknown',
+                    role: decoded.aud[0] || 'user',
+                    ...decoded
+                };
+            }
+
+            // Check if user has permission to delete
+            canDelete() {
+                const userInfo = this.getUserFromToken();
+                if (!userInfo) return false;
+                
+                const role = userInfo.aud[0]?.toLowerCase() || '';
+                return role === 'editor' || role === 'admin';
+            }
+
+            // Update UI status
+            updateStatus() {
+                const statusDiv = document.getElementById('status');
+                const headerTitle = document.getElementById('headerTitle');
+                const authSection = document.getElementById('authenticatedSection');
+                const loginSection = document.getElementById('loginSection');
+                const logoutBtn = document.getElementById('logoutBtn');
+                
+                if (this.token) {
+                    const userInfo = this.getUserFromToken();
+                    const userName = userInfo?.name || 'User';
+                    const userEmail = userInfo?.email || 'N/A';
+                    const userId = userInfo?.id || 'Unknown';
+                    const userRole = userInfo?.aud[0] || 'user';
+                    console.log(userInfo);
+                    console.log(userInfo.meta.base)
+                    
+                    // Update h1 with user info
+                    headerTitle.textContent = `${userName} - ${userEmail} - Role: ${userRole}`;
+                    
+                    if (this.canDelete()) {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = `✓ Authenticated as ${userName} (ID: ${userId}, Role: ${userRole})`;
+                        authSection.classList.add('show');
+                    } else {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = `✗ Access Denied - Only Editors and Admins can delete files. Your role: ${userRole}`;
+                        authSection.classList.remove('show');
+                    }
+                    
+                    loginSection.classList.add('hidden');
+                    logoutBtn.style.display = 'block';
+                } else {
+                    headerTitle.textContent = 'Authenticated API Client';
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '✗ Not authenticated';
+                    authSection.classList.remove('show');
+                    loginSection.classList.remove('hidden');
+                    logoutBtn.style.display = 'none';
+                }
+            }
+
+            // Check if authenticated
+            isAuthenticated() {
+                return this.token !== null;
+            }
+
+            // Get current token
+            getToken() {
+                return this.token;
+            }
+        }
+
+        // Initialize client
+        let client = null;
+        let selectedFiles = []; // Array to store selected file IDs
+        let allFiles = []; // Array to store all files
+        const MAX_SELECTION = 100; // Maximum number of files that can be selected
+
+        // Set default date (2 months ago) when page loads
+        function setDefaultDate() {
+            const twoMonthsAgo = new Date();
+            twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+            const dateString = twoMonthsAgo.toISOString().split('T')[0];
+            document.getElementById('cutoffDate').value = dateString;
+        }
+
+        // Initialize date picker with 2 months ago
+        window.addEventListener('DOMContentLoaded', () => {
+            setDefaultDate();
+        });
+
+        // Login function
+        async function login() {
+            const instanceName = document.getElementById('instanceName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!instanceName) {
+                alert('Please enter instance name');
+                return;
+            }
+
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
+            // Initialize client with custom instance
+            client = new AuthenticatedFetchClient(`https://${instanceName}.ijewel3d.com/api/raw/v1/`, instanceName);
+
+            const { data, error } = await client.login(email, password);
+
+            if (error) {
+                showStatus(`Login failed: ${error}`, 'error');
+            } else {
+                // Check if user has permission
+                if (client.canDelete()) {
+                    showStatus('Login successful!', 'success');
+                } else {
+                    const userInfo = client.getUserFromToken();
+                    showStatus(`Access Denied - Only Editors and Admins can delete files. Your role: ${userInfo?.role || 'user'}`, 'error');
+                }
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (client) {
+                client.logout();
+            }
+            showStatus('Logged out successfully', 'error');
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Fetch and display list
+        async function fetchList() {
+            if (!client || !client.canDelete()) {
+                alert('You do not have permission to access this feature. Only Editors and Admins can delete files.');
+                return;
+            }
+
+            const cutoffDateInput = document.getElementById('cutoffDate').value;
+            if (!cutoffDateInput) {
+                alert('Please select a cutoff date');
+                return;
+            }
+
+            const listContainer = document.getElementById('listContainer');
+            listContainer.innerHTML = '<div class="loading">Loading...</div>';
+            selectedFiles = []; // Reset selection
+            updateSelectionUI();
+
+            try {
+                // Use the selected date as cutoff
+                const cutoffDate = new Date(cutoffDateInput);
+                cutoffDate.setHours(23, 59, 59, 999); // Set to end of day
+                const cutoffDateISO = cutoffDate.toISOString();
+                const propsList = [ "id", "updated", "path", "name", "meta", "file","deleted","deleted_by","locked", "created"]
+                const userInfo = client.getUserFromToken();
+                console.log(userInfo)
+                const fullPath = joinPaths(userInfo?.meta?.base, userInfo?.meta?.base);
+                
+                // Filter for files older than selected date, only .glb files, and not deleted
+                const filter = `created<'${cutoffDateISO}' & name~'%.glb' & deleted_by=null & meta!~'%"type":"folder"%'`;
+                
+                const queryParams = new URLSearchParams({
+                    select: propsList.join(","),
+                    where: filter,
+                    limit: "1000" // Limit to 1000 files
+                });
+
+                // Use authenticated fetch with error/data tuple
+                const { data, error } = await client.fetch({
+                    url: `${client.baseURL}files/select?${queryParams}`,
+                    method: 'GET',
+                    authenticated: true,
+                    useBaseApi: true
+                });
+
+                if (error) {
+                    listContainer.innerHTML = `<div class="list-item" style="color: red;">Error: ${error}</div>`;
+                    return;
+                }
+
+                // Process data
+                allFiles = Array.isArray(data) ? data : data.data || data.items || [];
+                
+                if (allFiles.length === 0) {
+                    listContainer.innerHTML = '<div class="list-item">No items found</div>';
+                    return;
+                }
+
+                // Display table
+                const totalCount = allFiles.length;
+                const formattedDate = new Date(cutoffDateInput).toLocaleDateString();
+                let html = `
+                    <div class="info-box">
+                        <strong>Total Files: ${totalCount}</strong> (Showing up to 1000 files created before ${formattedDate})
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="selectAll(this.checked)">
+                                    </th>
+                                    <th>File Name</th>
+                                    <th>ID</th>
+                                    <th>Created</th>
+                                    <th style="width: 100px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Display list items in table rows
+                html += allFiles.map((item, index) => {
+                    const itemName = item.name || 'Unnamed File';
+                    const viewUrl = `https://${client.instanceName}.ijewel3d.com/drive/files/${item.id}/view`;
+                    return `
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="fileCheckbox" value="${item.id}" onchange="updateSelection()">
+                            </td>
+                            <td><strong>${itemName}</strong></td>
+                            <td><small>${item.id}</small></td>
+                            <td><small>${new Date(item.created).toLocaleString()}</small></td>
+                            <td><button onclick="window.open('${viewUrl}', '_blank')" style="padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">View</button></td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                listContainer.innerHTML = html;
+                
+            } catch (error) {
+                listContainer.innerHTML = `<div class="list-item" style="color: red;">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Select all files (with limit)
+        function selectAll(checked) {
+            const checkboxes = document.querySelectorAll('.fileCheckbox');
+            selectedFiles = [];
+            
+            if (checked) {
+                let count = 0;
+                checkboxes.forEach(checkbox => {
+                    if (count < MAX_SELECTION) {
+                        checkbox.checked = true;
+                        selectedFiles.push(checkbox.value);
+                        count++;
+                    } else {
+                        checkbox.checked = false;
+                        checkbox.disabled = true;
+                    }
+                });
+                
+                if (count >= MAX_SELECTION) {
+                    showStatus(`Selection limited to ${MAX_SELECTION} files maximum`, 'warning');
+                }
+            } else {
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                });
+            }
+            
+            updateSelectionUI();
+        }
+
+        // Update selection when individual checkbox changes
+        function updateSelection() {
+            const checkboxes = document.querySelectorAll('.fileCheckbox');
+            selectedFiles = [];
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedFiles.push(checkbox.value);
+                }
+            });
+            
+            // Enforce max selection limit
+            if (selectedFiles.length >= MAX_SELECTION) {
+                checkboxes.forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        checkbox.disabled = true;
+                    }
+                });
+                showStatus(`Maximum selection of ${MAX_SELECTION} files reached`, 'warning');
+            } else {
+                checkboxes.forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
+            }
+            
+            // Update select all checkbox
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const enabledCheckboxes = Array.from(checkboxes).filter(cb => !cb.disabled);
+            selectAllCheckbox.checked = selectedFiles.length === enabledCheckboxes.length && enabledCheckboxes.length > 0;
+            selectAllCheckbox.indeterminate = selectedFiles.length > 0 && selectedFiles.length < enabledCheckboxes.length;
+            
+            updateSelectionUI();
+        }
+
+        // Update selection UI
+        function updateSelectionUI() {
+            const selectionInfo = document.getElementById('selectionInfo');
+            const bulkActions = document.getElementById('bulkActions');
+            const selectedCount = document.getElementById('selectedCount');
+            
+            selectedCount.textContent = selectedFiles.length;
+            
+            if (selectedFiles.length > 0) {
+                selectionInfo.classList.add('show');
+                bulkActions.classList.add('show');
+                
+                if (selectedFiles.length >= MAX_SELECTION) {
+                    selectionInfo.classList.add('warning');
+                } else {
+                    selectionInfo.classList.remove('warning');
+                }
+            } else {
+                selectionInfo.classList.remove('show');
+                bulkActions.classList.remove('show');
+            }
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedFiles = [];
+            const checkboxes = document.querySelectorAll('.fileCheckbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.disabled = false;
+            });
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            selectAllCheckbox.checked = false;
+            updateSelectionUI();
+        }
+
+        // Helper function to log FormData contents
+        function logFormData(formData) {
+            const entries = {};
+            for (let [key, value] of formData.entries()) {
+                entries[key] = value;
+            }
+            console.log('FormData contents:', entries);
+            return entries;
+        }
+
+        // Delete selected files (temporary delete only - move to trash)
+        async function deleteSelected() {
+            if (!client || !client.canDelete()) {
+                alert('You do not have permission to delete files. Only Editors and Admins can delete files.');
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                alert('No files selected');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to move ${selectedFiles.length} file(s) to trash?\n\nThey can be recovered from the trash bin.`)) {
+                return;
+            }
+
+            showStatus(
+                `Moving ${selectedFiles.length} file(s) to trash... Please do not navigate away!`,
+                'warning'
+            );
+            
+            let successCount = 0;
+            let failCount = 0;
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const fileId = selectedFiles[i];
+                // Find the file object from allFiles
+                const file = allFiles.find(f => f.id === fileId);
+                if (!file) {
+                    failCount++;
+                    continue;
+                }
+
+                // Update status with progress
+                showStatus(
+                    `Moving file ${i + 1} of ${selectedFiles.length} to trash... Please do not navigate away!`,
+                    'warning'
+                );
+
+                const { error } = await deleteFile(file);
+                
+                if (error) {
+                    failCount++;
+                    console.error(`Failed to delete ${fileId}:`, error);
+                } else {
+                    successCount++;
+                }
+            }
+
+            clearSelection();
+            showStatus(
+                `✓ Move to trash complete! Moved ${successCount} file(s). Failed: ${failCount}.`,
+                successCount > 0 ? 'success' : 'error'
+            );
+            
+            // Refresh the list
+            await fetchList();
+        }
+
+        const joinPaths = (basePath, path) => {
+            // Join paths with a slash, handles cases where one or both might be empty
+            const joined = path.startsWith(basePath) ? path : `${basePath}/${path}`;
+
+            // Replace multiple consecutive slashes with a single slash
+            let normalizedPath = joined.replace(/\/+/g, '/');
+
+            // Ensure the path starts with a slash
+            if (!normalizedPath.startsWith('/')) {
+                normalizedPath = '/' + normalizedPath;
+            }
+
+            // Ensure the path ends with a slash, unless it's just the root path "/"
+            if (normalizedPath !== '/' && !normalizedPath.endsWith('/')) {
+                normalizedPath = normalizedPath + '/';
+            }
+
+            return normalizedPath;
+        }
+        
+        // Delete file (temporary delete only - move to trash)
+        async function deleteFile(file) {
+            try {
+                const alreadyInTrashBin = file.path?.includes("/deleted/");
+                
+                // Generate random string for trash folder
+                const randomStr = Math.random().toString(36).substring(2, 10);
+
+                // Build FormData for file update
+                const formData = new FormData();
+                const userInfo = client.getUserFromToken();
+                const userId = userInfo?.id || "";
+                const basePath = userInfo?.meta.base || "";
+
+                let newPath = file.path?.replace(basePath, ""); // remove basepath
+                newPath = joinPaths(basePath, `/deleted/${randomStr}/${newPath}`);
+                
+                // Only move to trash, never permanently delete
+                if (!alreadyInTrashBin) {
+                    formData.append("setValues.path", newPath);
+                }
+                
+                formData.append("setValues.deleted_by", userId);
+                formData.append("where", `id=${JSON.stringify(file.id)}`);
+                formData.append("returning", "id,created,updated,path,name,thumb,file,config,meta,tags,deleted,deleted_by,locked");
+
+                logFormData(formData);
+
+                // Move file to trash
+                const { data, error } = await client.fetch({
+                    url: `${client.baseURL}files/update`,
+                    method: 'POST',
+                    headers: {}, // Let FormData set the content-type
+                    body: formData,
+                    authenticated: true,
+                    useBaseApi: true
+                });
+
+                if (error || !data) {
+                    return { data: null, error };
+                }
+                return { data, error: null };
+            } catch (error) {
+                console.error('Delete file error:', error);
+                return { data: null, error: error.message };
+            }
+        }
+    </script>
+</body>
+</html>
